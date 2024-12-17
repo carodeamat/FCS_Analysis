@@ -18,14 +18,17 @@ read.fsc <- function(fcs.dir.path,
   missing.fcs <- metadata.files[!(metadata.files %in% all.fcs)]
   
   if (length(included.fcs)>0) {
-   fs <- read.flowSet(files=included.fcs, 
+    fs <- read.flowSet(files=included.fcs, 
                       path = fcs.dir.path,
                       transformation=transform,
                       which.lines=downsample,
                       truncate_max_range = truncate.max)
-  
+   
     cat("The following files were included:", "\n")
     for (file in included.fcs) {cat(file)}
+    
+    return(fs)
+    
   }else{warning("No files were processed")}
   
   if (length(excluded.fcs)>0) {
@@ -39,3 +42,41 @@ read.fsc <- function(fcs.dir.path,
   }else{cat("No missing files", "\n")}
   
 }
+
+
+
+
+#######################################
+## FUNCTION TO FILTER PARAMETERS 
+######################################
+
+filter.param <- function(param.df,
+                         AutoF.ch=NULL,
+                         lab.sep="_",
+                         cofactor=1000){
+  
+  #This will omit FSC, SSC, Time, and autofluorescence parameters
+  param.df <- na.omit(param.df[str_detect(param.df$channel, "^(?!FSC)(?!SSC).*-A$"),])
+  
+  if(!(is.null(AutoF.ch))&(AutoF.ch %in% param.df$channel)){
+    autof.regex <- paste("^(?!\\", AutoF.ch, ")", sep="")
+    param.df <- na.omit(param.df[str_detect(param.df$channel, autof.regex),])
+  }
+  
+  if(!is.null(lab.sep)){
+    label.regex <- paste("(.*)[", lab.sep, "](.*)", sep="")
+  } else{
+    label.regex <- "(.*)"
+  }
+  
+  # Detect the name of the marker in the label (i.e. excluding fluorochrome if it is also in the label)
+  param.df$marker <- str_match(param.df$label, label.regex)[,2] 
+  param.df$cofactor <- cofactor 
+  
+  return(param.df)
+  for(marker in param.df$marker){
+    cat(paste("'", marker, "'", "=", cofactor, ",", sep=""), "\n")
+  }
+}
+
+
