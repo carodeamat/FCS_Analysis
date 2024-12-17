@@ -30,6 +30,20 @@ library(scales)
 library(reshape2)
 
 
+
+
+
+```
+
+
+```{r}
+# Set directories
+
+indir <- "data/"
+fcsdir <- "data/FCS/"
+outdir <- "results/"
+plotdir <- "results/plots"
+
 ```
 
 ## Including Plots
