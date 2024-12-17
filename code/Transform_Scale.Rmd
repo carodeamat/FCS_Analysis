@@ -69,4 +69,30 @@ fset <- read.fcs(fcs.dir.path=fcsdir,
 
 ```
 
+## Obatin parameters to transform
+
+```{r}
+
+representative_sample <- "Tube_001.fcs"
+
+# Data frame containing the channels and respective marker names
+fftest <- fset@frames[[representative_sample]]
+param.df <- data.frame(channel = fftest@parameters@data$name, 
+                       label = fftest@parameters@data$desc)
+
+
+```
+
+
+```{r}
+
+AutoF_channel <- NULL
+Label_separator <- " " # or "_", or ""
+
+
+
+
+
+
+```
 
