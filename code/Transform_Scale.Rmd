@@ -1,5 +1,5 @@
 ---
-title: "Transform_Scale"
+title: "Pre-processing of FCS files: Arcsih Transformation"
 author: "Carolina"
 date: "2024-12-16"
 output: html_document
@@ -9,14 +9,27 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Transformation
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This is an R Markdown document to pre-process FCS files by applying transformation to parameter values. 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Load packages and utilities
+```{r}
 
-```{r cars}
-summary(cars)
+library(tidyverse)
+library(flowCore)
+library(flowVS)
+library(FlowSOM)
+library(Rphenograph)
+library(Rtsne)
+library(umap)
+library(ggcyto)
+library(pheatmap)
+library(viridis)
+library(scales)
+library(reshape2)
+
+
 ```
 
 ## Including Plots
