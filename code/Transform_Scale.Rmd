@@ -35,6 +35,12 @@ source("code/Preprocessing_Functions.R")
 
 ```
 
+## Directories
+The input directory (indir) is were all the data is store (fcs files/directory and metadata file)
+The fcs directory (fcsdir) is where the FCS files are located.
+The output directory (outdir) will contain the results of the analysis
+The plotd directory (plotdir) will contain all the output images generated.
+
 
 ```{r}
 # Set directories
@@ -46,12 +52,21 @@ plotdir <- "results/plots"
 
 ```
 
-## Including Plots
+## Read data
 
-You can also embed plots, for example:
+A csv file named "metadata.csv", containing the sample name (same as fcs file) as well as all the information for each files (e.g. mouseID, Treatment, Sex, Tissue, etc.) must be located in the working directory (root.dir).
+The read.fcs function reads the metadata and identify the fcs files in the fcs directory to read them and create a flowset object. It will also print the fcs file names that are included in the flowset, and will inform of any excluded (present in fcsdir but not in metadata), or missing (in metadata, but not found in fcsdir) fcs file.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+
+metadata <- read.csv(paste(indir, "metatata.csv"), sep="")
+
+fset <- read.fcs(fcs.dir.path=fcsdir,
+                 metadata=metadata,
+                 transform=FALSE,
+                 downsample=NULL,
+                 truncate.max=FALSE)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
