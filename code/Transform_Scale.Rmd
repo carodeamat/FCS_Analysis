@@ -19,19 +19,8 @@ This is an R Markdown document to pre-process FCS files by applying transformati
 library(tidyverse)
 library(flowCore)
 library(flowVS)
-#library(FlowSOM)
-#library(Rphenograph)
-#library(Rtsne)
-#library(umap)
-#library(ggcyto)
-#library(pheatmap)
-#library(viridis)
-#library(scales)
-#library(reshape2)
 
 source("Preprocessing_Functions.R")
-
-
 
 ```
 
@@ -47,8 +36,6 @@ The plotd directory (plotdir) will contain all the output images generated.
 
 indir <- "../data/"
 fcsdir <- "../data/FCS/"
-#outdir <- "results/"
-#plotdir <- "results/plots"
 
 ```
 
@@ -92,11 +79,11 @@ AutoF_channel <- "FJComp-UV446-A"
 Label_separator <- "-"  
 
 # Filter the parameters to get only Area measures of markers, retrieve marker names, and set initial cofactor value.
-param.df <- filter.param (param.df,
-                          AutoF.ch=AutoF_channel,
-                          marker.color=TRUE,
-                          label.sep=Label_separator,
-                          cofactor=1000)
+param.df <- process.param (param.df,
+                           AutoF.ch=AutoF_channel,
+                           marker.color=TRUE,
+                           label.sep=Label_separator,
+                           cofactor=1000)
 
 
 ```
