@@ -19,17 +19,17 @@ This is an R Markdown document to pre-process FCS files by applying transformati
 library(tidyverse)
 library(flowCore)
 library(flowVS)
-library(FlowSOM)
-library(Rphenograph)
-library(Rtsne)
-library(umap)
-library(ggcyto)
-library(pheatmap)
-library(viridis)
-library(scales)
-library(reshape2)
+#library(FlowSOM)
+#library(Rphenograph)
+#library(Rtsne)
+#library(umap)
+#library(ggcyto)
+#library(pheatmap)
+#library(viridis)
+#library(scales)
+#library(reshape2)
 
-source("code/Preprocessing_Functions.R")
+source("Preprocessing_Functions.R")
 
 
 
@@ -45,10 +45,10 @@ The plotd directory (plotdir) will contain all the output images generated.
 ```{r}
 # Set directories
 
-indir <- "data/"
-fcsdir <- "data/FCS/"
-outdir <- "results/"
-plotdir <- "results/plots"
+indir <- "../data/"
+fcsdir <- "../data/FCS/"
+#outdir <- "results/"
+#plotdir <- "results/plots"
 
 ```
 
@@ -59,7 +59,7 @@ The read.fcs function reads the metadata and identify the fcs files in the fcs d
 
 ```{r}
 
-metadata <- read.csv(paste(indir, "metatata.csv"), sep="")
+metadata <- read.csv(file.path(indir, "metadata.csv"))
 
 fset <- read.fcs(fcs.dir.path=fcsdir,
                  metadata=metadata,
@@ -73,7 +73,7 @@ fset <- read.fcs(fcs.dir.path=fcsdir,
 
 ```{r}
 
-representative_sample <- "Tube_001.fcs"
+representative_sample <- "NKT002_F.fcs"
 
 # Data frame containing the channels and respective marker names
 fftest <- fset@frames[[representative_sample]]
@@ -81,15 +81,15 @@ param.df <- data.frame(channel = fftest@parameters@data$name,
                        label = fftest@parameters@data$desc)
 
 # See the label format
-head(param.df)
+glimpse(param.df)
 
 ```
 
 
 ```{r}
 
-AutoF_channel <- NULL
-Label_separator <- " " # or "_"
+AutoF_channel <- "FJComp-UV446-A"
+Label_separator <- "-"  
 
 # Filter the parameters to get only Area measures of markers, retrieve marker names, and set initial cofactor value.
 param.df <- filter.param (param.df,
@@ -105,29 +105,33 @@ param.df <- filter.param (param.df,
 ```{r}
 
 # Adjust and re-run as needed
-custom.cof <- c(CD8=1000,
-                CXCR3=1000,
-                "TCF-1"=1000,
-                EOMES=1000,
-                FOXP3=1000,
-                Tbet=1000,
-                CD4=1000,
-                "CD45-2"=500,
-                CD103=1000,
-                CD3=1000,
-                CD69=1000,
-                CXCR6=1000,
-                CD25=1000,
-                LD=5000,
-                Ki67=1000,
-                CD44=1000,
-                CD62L=4000,
-                KLRG1=500,
-                "PD-1"=500,
-                Tetramer=300,
-                TOX=1000,
-                CD127=1000,
-                CX3CR1=1000)
+custom.cof <- c(
+'FceR1g'=1000, 
+'CD56'=700, 
+'CD94'=1000, 
+'CD45'=1000, 
+'GNLY'=1000, 
+'CD39'=1000, 
+'L_D'=2000, 
+'CD3'=1000, 
+'CD4'=1000, 
+'TCRgd'=2000, 
+'CXCR6'=1000, 
+'CD62L'=1000, 
+'TCRVa72'=3000, 
+'CD8'=2000, 
+'CD1dTet'=1000, 
+'GzmB'=1000, 
+'CD319'=1000, 
+'CD57'=1000, 
+'CD161'=1000, 
+'PD1'=1500, 
+'CD14_19'=3000, 
+'CD16'=1000, 
+'MR1Tet'=1000, 
+'RORgt'=1000, 
+'2B4'=1000, 
+'Tbet'=1000)
 
 
 # Replace the cofactors
@@ -170,11 +174,18 @@ glimpse(mat)
 
 ```{r}
 
+# Create directory if it does not exist
+if (!file.exists(file.path(indir, "Transformed_Data"))){
+    dir.create(file.path(indir, "Transformed_Data"))
+}
+
+tranf_data_dir <- file.path(indir, "Transformed_Data")
+
 # Save flowframes wihtin flowset as fcs files using the flowCore package
-write.flowSet(fst, outdir=fcsdir, filename = sampleNames(fst))
+write.flowSet(fst, outdir=tranf_data_dir, filename = sampleNames(fst))
 
 # Save the transformed expression matrix
-write.csv(mat, paste(outdir, "/TransfExprData.csv", sep=""))
+write.csv(mat, file.path(tranf_data_dir, "TransfExprData.csv"))
 
 ```
 
