@@ -48,11 +48,11 @@ read.fcs <- function(fcs.dir.path,
 
 
 
-#######################################
-## FUNCTION TO FILTER PARAMETERS 
-######################################
+############################################
+## FUNCTION TO FILTER AND PROCESS PARAMETERS 
+############################################
 
-filter.param <- function(param.df,
+process.param <- function(param.df,
                          AutoF.ch=NULL,
                          marker.color=TRUE,
                          label.sep="_",
