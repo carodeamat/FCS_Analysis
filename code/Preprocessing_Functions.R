@@ -4,7 +4,7 @@
 ## FUNCTION TO READ FCS FILES 
 ######################################
 
-read.fsc <- function(fcs.dir.path,
+read.fcs <- function(fcs.dir.path,
                      metadata,
                      transform=FALSE,
                      downsample=NULL,
@@ -25,22 +25,24 @@ read.fsc <- function(fcs.dir.path,
                       truncate_max_range = truncate.max)
    
     cat("The following files were included:", "\n")
-    for (file in included.fcs) {cat(file)}
+    for (file in included.fcs) {cat(file, "\n")}
     
-    return(fs)
     
   }else{warning("No files were processed")}
   
   if (length(excluded.fcs)>0) {
+    cat("-------------------------", "\n")
     cat("The following files from the directory were excluded:", "\n")
-    for (file in excluded.fcs) {cat(file)}
+    for (file in excluded.fcs) {cat(file, "\n")}
   }else{cat("all fcs files were included", "\n")}
   
   if (length(missing.fcs)>0) {
+    cat("-------------------------", "\n")
     cat("The following files were not found in the fcs directory:", "\n")
-    for (file in missing.fcs) {cat(file)}
+    for (file in missing.fcs) {cat(file, "\n")}
   }else{cat("No missing files", "\n")}
   
+  return(fs)
 }
 
 
@@ -52,7 +54,8 @@ read.fsc <- function(fcs.dir.path,
 
 filter.param <- function(param.df,
                          AutoF.ch=NULL,
-                         lab.sep="_",
+                         marker.color=TRUE,
+                         label.sep="_",
                          cofactor=1000){
   
   #This will omit FSC, SSC, Time, and autofluorescence parameters
@@ -63,8 +66,8 @@ filter.param <- function(param.df,
     param.df <- na.omit(param.df[str_detect(param.df$channel, autof.regex),])
   }
   
-  if(!is.null(lab.sep)){
-    label.regex <- paste("(.*)[", lab.sep, "](.*)", sep="")
+  if(marker.color & !(is.null(label.sep))){
+    label.regex <- paste("(.*)[", label.sep, "](.*)", sep="")
   } else{
     label.regex <- "(.*)"
   }
