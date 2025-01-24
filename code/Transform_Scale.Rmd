@@ -80,6 +80,8 @@ fftest <- fset@frames[[representative_sample]]
 param.df <- data.frame(channel = fftest@parameters@data$name, 
                        label = fftest@parameters@data$desc)
 
+# See the label format
+head(param.df)
 
 ```
 
@@ -87,8 +89,72 @@ param.df <- data.frame(channel = fftest@parameters@data$name,
 ```{r}
 
 AutoF_channel <- NULL
-Label_separator <- " " # or "_", or ""
+Label_separator <- " " # or "_"
 
+# Filter the parameters to get only Area measures of markers, retrieve marker names, and set initial cofactor value.
+param.df <- filter.param (param.df,
+                          AutoF.ch=AutoF_channel,
+                          marker.color=TRUE,
+                          label.sep=Label_separator,
+                          cofactor=1000)
+
+
+```
+
+
+```{r}
+
+# Adjust and re-run as needed
+custom.cof <- c(CD8=1000,
+                CXCR3=1000,
+                "TCF-1"=1000,
+                EOMES=1000,
+                FOXP3=1000,
+                Tbet=1000,
+                CD4=1000,
+                "CD45-2"=500,
+                CD103=1000,
+                CD3=1000,
+                CD69=1000,
+                CXCR6=1000,
+                CD25=1000,
+                LD=5000,
+                Ki67=1000,
+                CD44=1000,
+                CD62L=4000,
+                KLRG1=500,
+                "PD-1"=500,
+                Tetramer=300,
+                TOX=1000,
+                CD127=1000,
+                CX3CR1=1000)
+
+
+# Replace the cofactors
+param.df$cofactor[match(names(custom.cof), param.df$marker)] = custom.cof
+
+
+fftestset <- as(fftest,"flowSet")
+
+# Transform the representative file
+fftest.transf <- transFlowVS(fftestset, 
+                             channels=as.character(param.df$channel), 
+                             cofactor=param.df$cofactor)
+
+fftest.transf@frames$V1@parameters@data$name[match(param.df$channel, 
+                                                   fftest.transf@frames$V1@parameters@data$name)] = param.df$marker
+
+flowViz.par.set(theme =  trellis.par.get(), reset = TRUE)
+
+# Plot histograms for each marker to test cofactor values
+densityplot(~., fftest.transf, channel = param.df$channel)
+
+
+
+```
+
+
+```{r}
 
 
 
