@@ -29,15 +29,15 @@ read.fcs <- function(fcs.dir.path,
     
     
   }else{warning("No files were processed")}
-  
+
+  cat("-------------------------", "\n")
   if (length(excluded.fcs)>0) {
-    cat("-------------------------", "\n")
     cat("The following files from the directory were excluded:", "\n")
     for (file in excluded.fcs) {cat(file, "\n")}
   }else{cat("all fcs files were included", "\n")}
   
+  cat("-------------------------", "\n")
   if (length(missing.fcs)>0) {
-    cat("-------------------------", "\n")
     cat("The following files were not found in the fcs directory:", "\n")
     for (file in missing.fcs) {cat(file, "\n")}
   }else{cat("No missing files", "\n")}
@@ -76,10 +76,10 @@ filter.param <- function(param.df,
   param.df$marker <- str_match(param.df$label, label.regex)[,2] 
   param.df$cofactor <- cofactor 
   
-  return(param.df)
   for(marker in param.df$marker){
     cat(paste("'", marker, "'", "=", cofactor, ",", sep=""), "\n")
   }
+  return(param.df)
 }
 
 
