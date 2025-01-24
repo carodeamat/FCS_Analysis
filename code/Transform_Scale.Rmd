@@ -157,7 +157,7 @@ densityplot(~., fftest.transf, channel = param.df$channel)
 ```{r}
 
 # Transform all the flowset with the redefined cofactors
-fst <- transFlowVS(fs, channels=as.character(param.df$channel), cofactor=param.df$cofactor)
+fst <- transFlowVS(fset, channels=as.character(param.df$channel), cofactor=param.df$cofactor)
 
 # Get the expression matrix and respective sample
 mat <- as.data.frame(exprs(as(fst,'flowFrame')),stringsAsFactors=FALSE)
@@ -165,6 +165,16 @@ mat$Original <- metadata[mat$Original,1]
 colnames(mat)[colnames(mat)=="Original"] <- "Sample"
 colnames(mat)[match(param.df$channel, colnames(mat))] = param.df$marker
 glimpse(mat)
+
+```
+
+```{r}
+
+# Save flowframes wihtin flowset as fcs files using the flowCore package
+write.flowSet(fst, outdir=fcsdir, filename = sampleNames(fst))
+
+# Save the transformed expression matrix
+write.csv(mat, paste(outdir, "/TransfExprData.csv", sep=""))
 
 ```
 
