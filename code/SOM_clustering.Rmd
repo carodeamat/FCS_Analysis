@@ -95,7 +95,7 @@ data <- list(expr.mat = as.matrix(expr.df[,sel.markers]),
 
 # Add metadata information
 for (column in colnames(metadata)) {
-  data$metadata <- cbind(data$metadata, metadata[match(expr.df$Sample, metadata[,1]),column])
+  data$metadata <- cbind(data$metadata, metadata[match(expr.df$Sample_ID, metadata[,1]),column])
   colnames(data$metadata)[ncol(data$metadata)] <- column
 }
 
@@ -108,11 +108,16 @@ number_of_clusters <- 8
 
 # Run flowsom on transformed fcs files
 markers.idx <- which(colnames(expr.df)[-1] %in% sel.markers)
-flowsom <- FlowSOM(input = transfdir,
+flowsom <- FlowSOM(input = data$expr.mat,
                    transform = FALSE,
                    scale = FALSE,
-                   colsToUse = markers.idx,
-                   nClus = number_of_clusters) 
+                   colsToUse = NULL, #markers.idx,
+                   nClus = number_of_clusters,
+                   #maxMeta = number_of_clusters,
+                   xdim = 3,
+                   ydim = 3,
+                   rlen = 5000,
+                   alpha = c(0.05, 0.01)) 
 
 # Add the cluster IDs to the data frame
 data$metadata$Clusters_SOM <- as.factor(flowsom$map$mapping[,1])
@@ -128,9 +133,11 @@ tsne.obj <- Rtsne(data$expr.mat,
                   dims = 2,
                   initial_dims = ncol(data$expr.mat),
                   perplexity = 30, # Adjust as needed
-                  theta = 0.2, # Adjust as needed
-                  eta = 50,
+                  theta = 0.1, # Adjust as needed
+                  eta = 10,
                   pca = FALSE,
+                  #normalize = FALSE,
+                  max_iter = 5000,
                   verbose = FALSE)
 
 # Add tSNE values to the data
