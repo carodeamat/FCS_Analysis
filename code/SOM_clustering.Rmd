@@ -34,6 +34,8 @@ library(umap)
 #library(reshape2)
 library(Rtsne)
 
+source("Plot_functions_flow.R")
+
 seed <- 1234
 set.seed(seed)
 ```
@@ -102,7 +104,7 @@ for (column in colnames(metadata)) {
 ```{r}
 
 # Adjust nClus (number of clusters) as needed
-number_of_clusters <- 6
+number_of_clusters <- 8
 
 # Run flowsom on transformed fcs files
 markers.idx <- which(colnames(expr.df)[-1] %in% sel.markers)
@@ -125,8 +127,9 @@ levels(data$metadata$Clusters_SOM) <- flowsom$metaclustering
 tsne.obj <- Rtsne(data$expr.mat,
                   dims = 2,
                   initial_dims = ncol(data$expr.mat),
-                  perplexity = 6, # Adjust as needed
-                  theta = 0.25, # Adjust as needed
+                  perplexity = 30, # Adjust as needed
+                  theta = 0.2, # Adjust as needed
+                  eta = 50,
                   pca = FALSE,
                   verbose = FALSE)
 
@@ -136,5 +139,24 @@ colnames(tsne.values) <- c("tSNE_1", "tSNE_2")
 data$metadata[,colnames(tsne.values)] <- tsne.values
 
 
+```
+
+
+```{r}
+
+# Plot tSNE
+tSNEclusters <- plot.feature(data$metadata, 
+                              x = "tSNE_1",
+                              y = "tSNE_2",
+                              color.by = "Clusters_SOM", #or any other feature in the metadata
+                              split.by = NULL,
+                              size = 1.5, #size of the dots
+                              alpha = 1,
+                              show.cluser.id = TRUE,
+                              show.cluser.id.size = 4,
+                              colors = "default", #or a vector of colors with length = nClusters
+                              main = "tSNE clusters")
+
+print(tSNEclusters)
 ```
 
