@@ -156,6 +156,7 @@ mat <- mat %>% select(Original, everything())
 mat$Original <- metadata[mat$Original,1]
 colnames(mat)[colnames(mat)=="Original"] <- "Sample_ID"
 colnames(mat)[match(param.df$channel, colnames(mat))] = param.df$marker
+colnames(mat)[colnames(mat)==AutoF_channel] <- "AutoF"
 glimpse(mat)
 
 ```
@@ -173,7 +174,7 @@ tranf_data_dir <- file.path(indir, "Transformed_Data")
 write.flowSet(fst, outdir=tranf_data_dir, filename = sampleNames(fst))
 
 # Save the transformed expression matrix
-write.csv(mat, file.path(tranf_data_dir, "TransfExprData.csv"))
+write.csv(mat, file.path(tranf_data_dir, "TransfExprData.csv"), row.names=FALSE)
 
 ```
 
