@@ -152,8 +152,9 @@ fst <- transFlowVS(fset, channels=as.character(param.df$channel), cofactor=param
 
 # Get the expression matrix and respective sample
 mat <- as.data.frame(exprs(as(fst,'flowFrame')),stringsAsFactors=FALSE)
+mat <- mat %>% select(Original, everything())
 mat$Original <- metadata[mat$Original,1]
-colnames(mat)[colnames(mat)=="Original"] <- "Sample"
+colnames(mat)[colnames(mat)=="Original"] <- "Sample_ID"
 colnames(mat)[match(param.df$channel, colnames(mat))] = param.df$marker
 glimpse(mat)
 
