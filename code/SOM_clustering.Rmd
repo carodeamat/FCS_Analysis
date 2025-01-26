@@ -167,3 +167,36 @@ tSNEclusters <- plot.feature(data$metadata,
 print(tSNEclusters)
 ```
 
+```{r}
+
+#UMAP
+umap.config <- umap.defaults
+umap.config$n_neighbors <- 40 #Adjust as needed
+umap.data <- umap(data$expr.mat, config=umap.config)
+#Obtain the UMAP values
+umap.values <- umap.data$layout
+colnames(umap.values) <- c("UMAP_1", "UMAP_2")
+#Insert UMAP values to metadata dataframe
+data$metadata[,colnames(umap.values)] <- umap.values
+
+```
+
+```{r}
+
+
+UMAPclusters <- plot.feature(data$metadata, 
+                              x = "UMAP_1",
+                              y = "UMAP_2",
+                              color.by = "Clusters_SOM", 
+                              split.by = NULL,
+                              size = 1,
+                              alpha = 1,
+                              show.cluser.id = TRUE,
+                              show.cluser.id.size = 4,
+                              colors = "default", # or a vector of colors with length = nClusters
+                              main = "UMAP clusters")
+
+print(UMAPclusters)
+
+```
+
