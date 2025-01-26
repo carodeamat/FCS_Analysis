@@ -45,8 +45,8 @@ You can also embed plots, for example:
 ```{r pressure, echo=FALSE}
 
 # Set directories
-indir <- "data"
-transfdir <- "data/Transformed_Data/"
+indir <- "../data"
+transfdir <- "../data/Transformed_Data/"
 
 # Read metadata and transformed expression data
 metadata <- read.csv(file.path(indir, "metadata.csv"))
@@ -86,7 +86,7 @@ sel.markers <- c(
 "Tbet"
 )
 
-#markers.use <- which(colnames(mat) %in% sel.markers)
+
 # Create data list with expression matrix and metadata
 data <- list(expr.mat = as.matrix(expr.df[,sel.markers]),
              metadata = data.frame(matrix(nrow = nrow(expr.df), ncol = 0)))
@@ -101,7 +101,20 @@ for (column in colnames(metadata)) {
 
 ```{r}
 
+# Adjust nClus (number of clusters) as needed
+number_of_clusters <- 6
 
+# Run flowsom on transformed fcs files
+markers.idx <- which(colnames(expr.df)[-1] %in% sel.markers)
+flowsom <- FlowSOM(input = transfdir,
+                   transform = FALSE,
+                   scale = FALSE,
+                   colsToUse = markers.idx,
+                   nClus = number_of_clusters) 
+
+# Add the cluster IDs to the data frame
+data$metadata$Clusters_SOM <- as.factor(flowsom$map$mapping[,1])
+levels(data$metadata$Clusters_SOM) <- flowsom$metaclustering
 
 ```
 
