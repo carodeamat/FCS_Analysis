@@ -117,7 +117,8 @@ flowsom <- FlowSOM(input = data$expr.mat,
                    xdim = 3,
                    ydim = 3,
                    rlen = 5000,
-                   alpha = c(0.05, 0.01)) 
+                   alpha = c(0.05, 0.01),
+                   seed = seed) 
 
 # Add the cluster IDs to the data frame
 data$metadata$Clusters_SOM <- as.factor(flowsom$map$mapping[,1])
