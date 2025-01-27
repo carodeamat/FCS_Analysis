@@ -186,3 +186,35 @@ for(plot in bar.plots) {print(plot)}
 
 ```
 
+```{r}
+
+# Select the groups to plot
+subset.by <- "Clusters_pheno" #or any other variable in metadata
+groups <- c("1", "2") # groups to be compared in overlaid density plots
+
+# Subset metadata and expression matrix based on selected categories
+sub.data <- lapply(data, function(x){
+    subset(x, data$metadata[,subset.by] %in% groups)
+    }
+  )
+
+# Overlaid density plot
+density.plots <- lapply(colnames(sub.data$expr.mat), function(x){
+                    dens.plot(sub.data$metadata,
+                              sub.data$expr.mat,
+                              x = x,
+                              color.by = "Annotation",
+                              fill.label = "Population",
+                              linew = 0.5,
+                              alpha=0.6,
+                              colors = "default",
+                              xlabel = x)
+                }
+)
+
+names(density.plots) <- colnames(sub.data$expr.mat)
+
+for(plot in density.plots) {print(plot)}
+
+```
+
