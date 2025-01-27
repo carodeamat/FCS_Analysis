@@ -182,5 +182,35 @@ dens.plot <- function(data,
   if (all(colors!="default")&is.vector(colors)&length(colors)==length(unique(plot.data$plot.color.by))){
     gg <- gg + scale_fill_manual(color.by, values = colors)
   }
-  
+  return(gg)
 }
+
+# Distribution bar plots
+
+bar.plot <- function(table, 
+                     xlabel="Population", 
+                     ylabel="Frequency", 
+                     fill.label="Group",
+                     colors= "default",
+                     x.angle=45,
+                     vjust = 1, 
+                     hjust=1,
+                     aspect.ratio=0.8){
+  df <- as.data.frame(table)
+  gg <- ggplot(df, aes(fill=Var1, y=Freq, x=Var2)) + 
+    geom_bar(position="fill", stat="identity") +
+    theme_classic() +
+    xlab(xlabel) +
+    ylab(ylabel) +
+    labs(fill = fill.label) +
+    theme(axis.text.x = element_text(angle = x.angle, 
+                                     vjust = vjust, 
+                                     hjust=hjust),
+          aspect.ratio=aspect.ratio) 
+    
+  if (all(colors!="default")&is.vector(colors)&length(colors)==length(unique(df$Var1))){
+    gg <- gg + scale_fill_manual(color.by, values = colors)
+  }
+  return(gg)
+}
+    
