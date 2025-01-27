@@ -97,13 +97,11 @@ for (column in colnames(metadata)) {
 number_of_clusters <- 8
 
 # Run flowsom on transformed fcs files
-markers.idx <- which(colnames(expr.df)[-1] %in% sel.markers)
 flowsom <- FlowSOM(input = data$expr.mat,
                    transform = FALSE,
                    scale = FALSE,
-                   colsToUse = NULL, #markers.idx,
+                   colsToUse = NULL, 
                    nClus = number_of_clusters,
-                   #maxMeta = number_of_clusters,
                    xdim = 3,
                    ydim = 3,
                    rlen = 5000,
@@ -111,8 +109,8 @@ flowsom <- FlowSOM(input = data$expr.mat,
                    seed = seed) 
 
 # Add the cluster IDs to the data frame
-data$metadata$Clusters_SOM <- as.factor(flowsom$map$mapping[,1])
-levels(data$metadata$Clusters_SOM) <- flowsom$metaclustering
+data$metadata$Clusters <- as.factor(flowsom$map$mapping[,1])
+levels(data$metadata$Clusters) <- flowsom$metaclustering
 
 ```
 
@@ -125,10 +123,9 @@ tsne.obj <- Rtsne(data$expr.mat,
                   initial_dims = ncol(data$expr.mat),
                   perplexity = 30, # Adjust as needed
                   theta = 0.1, # Adjust as needed
-                  eta = 10,
+                  eta = 10, # Adjust as needed
                   pca = FALSE,
-                  #normalize = FALSE,
-                  max_iter = 5000,
+                  max_iter = 5000, # Adjust as needed
                   verbose = FALSE)
 
 # Add tSNE values to the data
@@ -146,7 +143,7 @@ data$metadata[,colnames(tsne.values)] <- tsne.values
 tSNEclusters <- plot.feature(data$metadata, 
                               x = "tSNE_1",
                               y = "tSNE_2",
-                              color.by = "Clusters_SOM", #or any other feature in the metadata
+                              color.by = "Clusters", #or any other feature in the metadata
                               split.by = NULL,
                               size = 1.5, #size of the dots
                               alpha = 1,
@@ -178,7 +175,7 @@ data$metadata[,colnames(umap.values)] <- umap.values
 UMAPclusters <- plot.feature(data$metadata, 
                               x = "UMAP_1",
                               y = "UMAP_2",
-                              color.by = "Clusters_SOM", 
+                              color.by = "Clusters", 
                               split.by = NULL,
                               size = 1,
                               alpha = 1,
