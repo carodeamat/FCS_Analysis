@@ -1,0 +1,101 @@
+---
+title: "Annotation and Visualization"
+author: "Carolina"
+date: "2025-01-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+library(tidyverse)
+library(Rtsne)
+library(umap)
+#library(ggcyto)
+library(pheatmap)
+library(viridis)
+library(scales)
+library(reshape2)
+
+```
+
+
+
+```{r}
+
+# Set directories
+datapath <- "../results/Pheno_clustering_1234_2025-01-26.rds"
+outdir <- "../results"
+plotdir <- "../results/plots"
+
+# Read data and transformed expression data
+data <- readRDS(datapath)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+
+# Set gradient colors
+myColor <- inferno(100)
+
+# Obtain clusters information
+clusterID <- as.factor(data$metadata$Clusters_pheno)
+
+#Obtain the expression median for each cluster
+dataheat <- data.frame(matrix(0, ncol=ncol(data$expr.mat), nrow=length(levels(clusterID))))
+for(i in seq_len(ncol(data$expr.mat))){
+  dataheat[,i] <- tapply(data$expr.mat[,i], clusterID, median)
+}
+
+colnames(dataheat) <- colnames(data$expr.mat)
+dataheat <- data.frame(t(dataheat))
+colnames(dataheat) <- levels(clusterID)
+
+# Plot heatmap
+heat.expr <- pheatmap(dataheat, 
+                      color = myColor, 
+                      scale = "row", 
+                      border_color = NA, 
+                      fontsize = 15, 
+                      treeheight_row = 0)  
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+# 2D expression plots
+UMAPexpr <- lapply(colnames(data$expr.mat), function(x){
+                  plot.expr(data$metadata, 
+                            data$expr.mat,
+                            x = "UMAP_1",
+                            y = "UMAP_2", 
+                            color.by=x, 
+                            main = x, 
+                            size = 2,
+                            limits=c(quantile(data$expr.mat[,x], 0.01), 
+                                     quantile(data$expr.mat[,x], 0.99))
+                  )
+                            
+})
+
+names(UMAPexpr) <- colnames(data$expr.mat)
+
+for(plot in UMAPexpr) {print(plot)}
+```
+
