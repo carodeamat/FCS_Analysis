@@ -1,0 +1,196 @@
+---
+title: "Phenograph clustering"
+author: "Carolina"
+date: "2025-01-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r}
+
+# Load required packages
+library(tidyverse)
+library(Rphenograph)
+library(umap)
+library(Rtsne)
+
+source("Plot_functions_flow.R")
+
+seed <- 1234
+set.seed(seed)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+# Set directories
+indir <- "../data"
+transfdir <- "../data/Transformed_Data/"
+
+# Read metadata and transformed expression data
+metadata <- read.csv(file.path(indir, "metadata.csv"))
+expr.df <- read.csv(file.path(transfdir, "TransfExprData.csv"), check.names=FALSE)
+
+# Check the available markers that can be copied
+for(column in colnames(expr.df)[-1]){
+  cat(paste("\"", column, "\",", sep=""), "\n")
+}
+
+```
+
+```{r}
+
+# Select the markers to be used for clustering and dimension reduction.
+sel.markers <- c(
+"FceR1g", 
+"CD56", 
+"CD94", 
+"GNLY", 
+"CD39", 
+"CD4", 
+"CXCR6", 
+"CD62L", 
+"CD8", 
+"GzmB", 
+"CD319", 
+"CD57", 
+"CD161", 
+"PD1", 
+"CD16", 
+"RORgt", 
+"2B4", 
+"Tbet"
+)
+
+
+# Create data list with expression matrix and metadata
+data <- list(expr.mat = as.matrix(expr.df[,sel.markers]),
+             metadata = data.frame(matrix(nrow = nrow(expr.df), ncol = 0)))
+
+# Add metadata information
+for (column in colnames(metadata)) {
+  data$metadata <- cbind(data$metadata, metadata[match(expr.df$Sample_ID, metadata[,1]),column])
+  colnames(data$metadata)[ncol(data$metadata)] <- column
+}
+
+```
+
+```{r}
+
+#PHENOGRAPH
+
+#Calculate phenograph considering the desired k value
+# Adjust k as needed
+pheno <- Rphenograph(data$expr.mat, k = 50) 
+
+#Insert the clustering information into the data
+data$metadata$Clusters_pheno  <- as.factor(membership(pheno[[2]]))
+
+#Now the data contains information about the clusters generated
+
+```
+
+
+```{r}
+
+#tSNE
+tsne.obj <- Rtsne(data$expr.mat,
+                  dims = 2,
+                  initial_dims = ncol(data$expr.mat),
+                  perplexity = 30, # Adjust as needed
+                  theta = 0.1, # Adjust as needed
+                  eta = 10,
+                  pca = FALSE,
+                  #normalize = FALSE,
+                  max_iter = 5000,
+                  verbose = FALSE)
+
+# Add tSNE values to the data
+tsne.values <- tsne.obj$Y
+colnames(tsne.values) <- c("tSNE_1", "tSNE_2")
+data$metadata[,colnames(tsne.values)] <- tsne.values
+
+
+```
+
+
+```{r}
+
+# Plot tSNE
+tSNEclusters <- plot.feature(data$metadata, 
+                              x = "tSNE_1",
+                              y = "tSNE_2",
+                              color.by = "Clusters_pheno", #or any other feature in the metadata
+                              split.by = NULL,
+                              size = 1.5, #size of the dots
+                              alpha = 1,
+                              show.cluser.id = TRUE,
+                              show.cluser.id.size = 4,
+                              colors = "default", #or a vector of colors with length = nClusters
+                              main = "tSNE clusters")
+
+print(tSNEclusters)
+```
+
+
+```{r}
+
+#UMAP
+umap.config <- umap.defaults
+umap.config$n_neighbors <- 50 #Adjust as needed
+umap.data <- umap(data$expr.mat, config=umap.config)
+#Obtain the UMAP values
+umap.values <- umap.data$layout
+colnames(umap.values) <- c("UMAP_1", "UMAP_2")
+#Insert UMAP values to metadata dataframe
+data$metadata[,colnames(umap.values)] <- umap.values
+
+```
+
+```{r}
+
+
+UMAPclusters <- plot.feature(data$metadata, 
+                              x = "UMAP_1",
+                              y = "UMAP_2",
+                              color.by = "Clusters_pheno", 
+                              split.by = NULL,
+                              size = 1,
+                              alpha = 1,
+                              show.cluser.id = TRUE,
+                              show.cluser.id.size = 4,
+                              colors = "default", # or a vector of colors with length = nClusters
+                              main = "UMAP clusters")
+
+print(UMAPclusters)
+
+```
+
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
