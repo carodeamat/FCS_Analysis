@@ -98,7 +98,7 @@ for (column in colnames(metadata)) {
 pheno <- Rphenograph(data$expr.mat, k = 50) 
 
 #Insert the clustering information into the data
-data$metadata$Clusters_pheno  <- as.factor(membership(pheno[[2]]))
+data$metadata$Clusters  <- as.factor(membership(pheno[[2]]))
 
 #Now the data contains information about the clusters generated
 
@@ -113,10 +113,9 @@ tsne.obj <- Rtsne(data$expr.mat,
                   initial_dims = ncol(data$expr.mat),
                   perplexity = 30, # Adjust as needed
                   theta = 0.1, # Adjust as needed
-                  eta = 10,
+                  eta = 10, # Adjust as needed
                   pca = FALSE,
-                  #normalize = FALSE,
-                  max_iter = 5000,
+                  max_iter = 5000, # Adjust as needed
                   verbose = FALSE)
 
 # Add tSNE values to the data
@@ -134,7 +133,7 @@ data$metadata[,colnames(tsne.values)] <- tsne.values
 tSNEclusters <- plot.feature(data$metadata, 
                               x = "tSNE_1",
                               y = "tSNE_2",
-                              color.by = "Clusters_pheno", #or any other feature in the metadata
+                              color.by = "Clusters", #or any other feature in the metadata
                               split.by = NULL,
                               size = 1.5, #size of the dots
                               alpha = 1,
@@ -167,7 +166,7 @@ data$metadata[,colnames(umap.values)] <- umap.values
 UMAPclusters <- plot.feature(data$metadata, 
                               x = "UMAP_1",
                               y = "UMAP_2",
-                              color.by = "Clusters_pheno", 
+                              color.by = "Clusters", 
                               split.by = NULL,
                               size = 1,
                               alpha = 1,
