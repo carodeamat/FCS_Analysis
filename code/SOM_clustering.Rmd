@@ -19,19 +19,8 @@ When you click the **Knit** button a document will be generated that includes bo
 
 # Load required packages
 library(tidyverse)
-#library(dplyr)
-#library(flowCore)
-#library(flowVS)
 library(FlowSOM)
-#library(Rphenograph)
 library(umap)
-#library(ggcyto)
-#library(pheatmap)
-#library(viridis)
-#library(scales)
-#library(SingleCellExperiment) #only for pseudotime analysis
-#library(slingshot) #only for pseudotime analysis
-#library(reshape2)
 library(Rtsne)
 
 source("Plot_functions_flow.R")
@@ -44,11 +33,12 @@ set.seed(seed)
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
+```{r}
 
 # Set directories
 indir <- "../data"
-transfdir <- "../data/Transformed_Data/"
+transfdir <- "../data/Transformed_Data"
+outdir <- "../results"
 
 # Read metadata and transformed expression data
 metadata <- read.csv(file.path(indir, "metadata.csv"))
@@ -201,3 +191,13 @@ print(UMAPclusters)
 
 ```
 
+```{r}
+
+# Create output directory if it does not exist
+if (!file.exists(outdir)){
+    dir.create(outdir)
+}
+
+AnalysisID <- Sys.Date()
+saveRDS(data, file.path(outdir, paste("SOM_clustering_", seed, "_", AnalysisID, ".rds", sep="")))
+```
