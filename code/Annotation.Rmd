@@ -26,6 +26,11 @@ library(viridis)
 library(scales)
 library(reshape2)
 
+source("Plot_functions_flow.R")
+
+seed <- 1234
+set.seed(seed)
+
 ```
 
 
@@ -97,5 +102,87 @@ UMAPexpr <- lapply(colnames(data$expr.mat), function(x){
 names(UMAPexpr) <- colnames(data$expr.mat)
 
 for(plot in UMAPexpr) {print(plot)}
+```
+
+```{r}
+
+# Change cluster labels
+
+new.labels <- c(
+  "1"= "CD4+",
+  "2"= "CD57+",
+  "3"= "CXCR6+ 2B4lo",
+  "4"= "CD56- FceR1g-",
+  "5"= "CD62L+ CD4+",
+  "6"= "CXCR6+ 2B4+",
+  "7"= "CD8+",
+  "8"= "CD94+",
+  "9"= "CD62L+ CD4-"
+)
+
+new.order <- c(
+  "5",
+  "1",
+  "9",
+  "4",
+  "3",
+  "6",
+  "7",
+  "8",
+  "2"
+)
+
+data$metadata$Annotation <- new.labels[as.character(data$metadata$Clusters_pheno)]
+data$metadata$Annotation <- factor(data$metadata$Annotation, levels = new.labels[new.order])
+
+```
+
+
+```{r}
+
+
+UMAPannotated <- plot.feature(data$metadata, 
+                              x = "UMAP_1",
+                              y = "UMAP_2",
+                              color.by = "Annotation", 
+                              split.by = NULL,
+                              size = 1,
+                              alpha = 1,
+                              show.cluser.id = TRUE,
+                              show.cluser.id.size = 2,
+                              colors = "default", # or a vector of colors with length = nClusters
+                              main = "UMAP Populations")
+
+print(UMAPannotated)
+
+```
+
+```{r}
+
+# Metadata to evaluate for cluster distribution
+groups <- c("Subject", "Sex") # Any categorical metadata information
+
+# Total number of cells per cluster
+t.pop <- table(data$metadata$Annotation) 
+
+# Number of cells per cluster distributed in groups
+table.list <- lapply(groups, function(x){table(data$metadata[,x], data$metadata$Annotation)})
+names(table.list) <- groups
+
+print(t.pop)
+print(table.list)
+
+
+#Barplot of the frequencies of each population in each group
+bar.plots <- lapply(groups, function(x){
+  bar.plot(table.list[[x]], fill.label = x)
+  }
+)
+
+names(bar.plots) <- groups
+
+for(plot in bar.plots) {print(plot)}
+
+
 ```
 
