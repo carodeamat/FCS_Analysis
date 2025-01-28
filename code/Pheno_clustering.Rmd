@@ -181,7 +181,12 @@ if (!file.exists(outdir)){
     dir.create(outdir)
 }
 
+RDSdir <- file.path(outdir, "RDS")
+
+if (!file.exists(RDSdir)){
+    dir.create(RDSdir)
+}
 AnalysisID <- Sys.Date()
-saveRDS(data, file.path(outdir, paste("Pheno_clustering_", seed, "_", AnalysisID, ".rds", sep="")))
+saveRDS(data, file.path(RDSdir, paste("Pheno_clustering_", seed, "_", AnalysisID, ".rds", sep="")))
 ```
 
