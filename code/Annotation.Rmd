@@ -39,7 +39,6 @@ set.seed(seed)
 # Set directories
 datapath <- "../results/Pheno_clustering_1234_2025-01-27.rds"
 outdir <- "../results"
-plotdir <- "../results/plots"
 
 # Read data and transformed expression data
 data <- readRDS(datapath)
@@ -249,6 +248,76 @@ density.plots <- lapply(colnames(sub.data$expr.mat), function(x){
 names(density.plots) <- colnames(data$expr.mat)
 
 for(plot in density.plots) {print(plot)}
+
+```
+
+```{r}
+
+
+plotdir <- file.path(outdir, "plots")
+csvdir <- file.path(outdir, "tables")
+
+# Create output directories if they don't exist.
+if (!file.exists(plotdir)){
+    dir.create(plotdir)
+}
+
+if (!file.exists(csvdir)){
+    dir.create(csvdir)
+}
+
+# Set analysis ID
+AnalysisID <- Sys.Date()
+
+# Save annotated data
+saveRDS(data, paste(RDSdir, "/Annotated_", seed, "_", AnalysisID, ".rds", sep=""))
+
+# Save tables as csv files
+write.csv(t.pop, file= paste(csvdir, "/Pop-nCells_", seed, "_", AnalysisID, ".csv", sep="")) 
+
+for (i in 1:length(table.list)){
+  write.csv(i, 
+            file= paste(csvdir,
+                        "/Pop-nCells-",
+                        names(table.list)[i],
+                        "_",
+                        seed,
+                        "_",
+                        AnalysisID,
+                        ".csv",
+                        sep=""))
+}
+
+# Save plots as svg files
+svg(paste(plotdir, "/Heatmap_", AnalysisID, ".svg", sep=""))
+print(heat.expr)
+dev.off()
+
+for (i in 1:length(UMAPexpr)){
+  svg(paste(plotdir, "/UMAPexpr_", names(UMAPexpr)[i], "_", AnalysisID, ".svg", sep = ""))
+  print(UMAPexpr[[i]])
+  dev.off()
+}
+
+svg(paste(plotdir, "/UMAPannotated_", AnalysisID, ".svg", sep = ""))
+print(UMAPannotated)
+dev.off()
+
+svg(paste(plotdir, "/UMAPsplit_", AnalysisID, ".svg", sep = ""))
+print(UMAPsplit)
+dev.off()
+
+for (i in 1:length(bar.plots)){
+  svg(paste(plotdir, "/Barplot_", names(bar.plots)[i], "_", AnalysisID, ".svg", sep = ""))
+  print(bar.plots[[i]])
+  dev.off()
+}
+
+for (i in 1:length(density.plots)){
+  svg(paste(plotdir, "/Density_", names(density.plots)[i], "_", AnalysisID, ".svg", sep = ""))
+  print(density.plots[[i]])
+  dev.off()
+}
 
 ```
 
