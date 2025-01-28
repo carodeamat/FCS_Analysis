@@ -123,12 +123,6 @@ tsne.values <- tsne.obj$Y
 colnames(tsne.values) <- c("tSNE_1", "tSNE_2")
 data$metadata[,colnames(tsne.values)] <- tsne.values
 
-
-```
-
-
-```{r}
-
 # Plot tSNE
 tSNEclusters <- plot.feature(data$metadata, 
                               x = "tSNE_1",
@@ -143,7 +137,10 @@ tSNEclusters <- plot.feature(data$metadata,
                               main = "tSNE clusters")
 
 print(tSNEclusters)
+
 ```
+
+
 
 
 ```{r}
@@ -158,11 +155,7 @@ colnames(umap.values) <- c("UMAP_1", "UMAP_2")
 #Insert UMAP values to metadata dataframe
 data$metadata[,colnames(umap.values)] <- umap.values
 
-```
-
-```{r}
-
-
+# Plot UMAP
 UMAPclusters <- plot.feature(data$metadata, 
                               x = "UMAP_1",
                               y = "UMAP_2",
