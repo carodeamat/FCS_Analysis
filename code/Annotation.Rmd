@@ -20,7 +20,6 @@ When you click the **Knit** button a document will be generated that includes bo
 library(tidyverse)
 library(Rtsne)
 library(umap)
-#library(ggcyto)
 library(pheatmap)
 library(viridis)
 library(scales)
@@ -38,7 +37,7 @@ set.seed(seed)
 ```{r}
 
 # Set directories
-datapath <- "../results/Pheno_clustering_1234_2025-01-26.rds"
+datapath <- "../results/Pheno_clustering_1234_2025-01-27.rds"
 outdir <- "../results"
 plotdir <- "../results/plots"
 
@@ -57,7 +56,7 @@ You can also embed plots, for example:
 myColor <- inferno(100)
 
 # Obtain clusters information
-clusterID <- as.factor(data$metadata$Clusters_pheno)
+clusterID <- as.factor(data$metadata$Clusters)
 
 #Obtain the expression median for each cluster
 dataheat <- data.frame(matrix(0, ncol=ncol(data$expr.mat), nrow=length(levels(clusterID))))
@@ -132,54 +131,88 @@ new.order <- c(
   "2"
 )
 
-data$metadata$Annotation <- new.labels[as.character(data$metadata$Clusters_pheno)]
-data$metadata$Annotation <- factor(data$metadata$Annotation, levels = new.labels[new.order])
+data$metadata$Population <- new.labels[as.character(data$metadata$Clusters)]
+data$metadata$Population <- factor(data$metadata$Population, levels = new.labels[new.order])
 
 ```
 
 
 ```{r}
 
+# Optional: assign new colors to populations.
+new.colors <- c(
+  "#E07A04", 
+  "#F0677C", 
+  "#9326BC", 
+  "#C71784", 
+  "#00A79D",
+  "#6E91CB", 
+  "#6C8F3C", 
+  "#BC852E", 
+  "#CF1925"
+)
 
 UMAPannotated <- plot.feature(data$metadata, 
                               x = "UMAP_1",
                               y = "UMAP_2",
-                              color.by = "Annotation", 
+                              color.by = "Population", 
                               split.by = NULL,
                               size = 1,
                               alpha = 1,
                               show.cluser.id = TRUE,
                               show.cluser.id.size = 2,
-                              colors = "default", # or a vector of colors with length = nClusters
+                              colors = new.colors, # or "default"
                               main = "UMAP Populations")
 
 print(UMAPannotated)
 
 ```
 
+
 ```{r}
 
-# Metadata to evaluate for cluster distribution
-groups <- c("Subject", "Sex") # Any categorical metadata information
+
+UMAPsplit <- plot.feature(data$metadata, 
+                              x = "UMAP_1",
+                              y = "UMAP_2",
+                              color.by = "Population", 
+                              split.by = "Sex",
+                              size = 1,
+                              alpha = 1,
+                              show.cluser.id = TRUE,
+                              show.cluser.id.size = 2,
+                              colors = new.colors, # or "default"
+                              main = "UMAP Populations")
+
+print(UMAPsplit)
+
+```
+
+```{r}
+
+# Metadata to evaluate for cluster distribution and respective colors
+metad.colors <- list(Subject= "default",
+                     Sex= c("#d3caa7", "#2a580e")) 
 
 # Total number of cells per cluster
-t.pop <- table(data$metadata$Annotation) 
+t.pop <- table(data$metadata$Population) 
+print(t.pop)
 
 # Number of cells per cluster distributed in groups
-table.list <- lapply(groups, function(x){table(data$metadata[,x], data$metadata$Annotation)})
-names(table.list) <- groups
-
-print(t.pop)
-print(table.list)
-
+table.list <- lapply(names(metad.colors), function(x){
+  table(data$metadata[,x], 
+        data$metadata$Population)})
+names(table.list) <- names(metad.colors)
 
 #Barplot of the frequencies of each population in each group
-bar.plots <- lapply(groups, function(x){
-  bar.plot(table.list[[x]], fill.label = x)
+bar.plots <- lapply(names(metad.colors), function(x){
+  bar.plot(table.list[[x]], 
+           fill.label = x, 
+           colors= metad.colors[[x]],)
   }
 )
 
-names(bar.plots) <- groups
+names(bar.plots) <- names(metad.colors)
 
 for(plot in bar.plots) {print(plot)}
 
@@ -189,8 +222,9 @@ for(plot in bar.plots) {print(plot)}
 ```{r}
 
 # Select the groups to plot
-subset.by <- "Clusters_pheno" #or any other variable in metadata
+subset.by <- "Clusters" #or any other variable in metadata
 groups <- c("1", "2") # groups to be compared in overlaid density plots
+dens.colors <- c("#c2b984", "#953a1c")
 
 # Subset metadata and expression matrix based on selected categories
 sub.data <- lapply(data, function(x){
@@ -203,16 +237,16 @@ density.plots <- lapply(colnames(sub.data$expr.mat), function(x){
                     dens.plot(sub.data$metadata,
                               sub.data$expr.mat,
                               x = x,
-                              color.by = "Annotation",
-                              fill.label = "Population",
+                              color.by = "Population",
                               linew = 0.5,
                               alpha=0.6,
-                              colors = "default",
-                              xlabel = x)
+                              colors = dens.colors,
+                              xlabel = x,
+                              aspect.ratio = 1.5)
                 }
 )
 
-names(density.plots) <- colnames(sub.data$expr.mat)
+names(density.plots) <- colnames(data$expr.mat)
 
 for(plot in density.plots) {print(plot)}
 
