@@ -162,30 +162,31 @@ plot.expr <- function(feat_data,
 dens.plot <- function(feat_data,
                       expr_matrix,
                       x = "CD4",
-                      color.by,
+                      color.by = "Clusters",
                       linew = 0.5,
                       alpha = 0.6,
                       colors = "default",
                       xlabel = "marker expression",
-                      fill.label = "Group",
                       aspect.ratio = 1.5,
                       plot.theme = theme_bw()) {
   
   plot.data <- data.frame(plot.x = expr_matrix[,x],
                           plot.color.by = feat_data[,color.by])
   
+  spc <- 0.2*(max(plot.data$plot.x) - min(plot.data$plot.x))
   gg <- ggplot(plot.data, aes(x=plot.x, fill=plot.color.by, y=after_stat(scaled))) + 
     geom_density(alpha=alpha, linewidth = linew) +
-    scale_x_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0),
+                       limits = c(min(plot.data$plot.x)-spc, max(plot.data$plot.x)+spc)) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.05),
                                           add = c(0, 0))) +
     plot.theme +
     xlab(xlabel) +
     ylab("Scaled Density") +
-    labs(fill = fill.label) +
+    labs(fill = color.by) +
     theme(aspect.ratio=aspect.ratio)
   if (all(colors!="default")&is.vector(colors)&length(colors)==length(unique(plot.data$plot.color.by))){
-    gg <- gg + scale_fill_manual(color.by, values = colors)
+    gg <- gg + scale_fill_manual(values = colors)
   }
   return(gg)
 }
@@ -214,7 +215,7 @@ bar.plot <- function(table,
           aspect.ratio=aspect.ratio) 
     
   if (all(colors!="default")&is.vector(colors)&length(colors)==length(unique(df$Var1))){
-    gg <- gg + scale_fill_manual(color.by, values = colors)
+    gg <- gg + scale_fill_manual(values = colors)
   }
   return(gg)
 }
