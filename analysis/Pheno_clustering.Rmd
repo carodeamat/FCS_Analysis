@@ -9,73 +9,68 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+There are two main methods for clustering flow data, FlowSOM and Phenograph. \
+Each of them has their own strengths and limitations. \
+FlowSOM requires to pre-define the number of clusters that we want to obtain, while in phenograph will give you the number of clusters based on the "k" parameter. However, flowSOM may be preferred for large data sets, as phenograph may return too many clusters.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
+## Load packages and utilities
 
 ```{r}
-
 # Load required packages
 library(tidyverse)
 library(Rphenograph)
 library(umap)
 library(Rtsne)
 
-source("Plot_functions_flow.R")
+source("../src/Plot_functions_flow.R")
 
 seed <- 1234
 set.seed(seed)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
+##Paths to directories and files
+*transfcsv* is the path to the csv file containing the transformed expression matrix. \
+*metafile* is the path to the metadata file, which is a csv file containing the sample name (same name as fcs file) in the first column, as well as all the information for each sample (e.g. mouseID, Treatment, Sex, Tissue, etc.). \
+*outdir* is the path to the output directory that will contain the output data after clustering. The directory will be created if it doesn't exist.
 
 ```{r}
 
 # Set directories
-indir <- "../data"
-transfdir <- "../data/Transformed_Data"
+transfcsv <- "../data/TransformedData/TransfExprData.csv"
+metafile <- "../data/metadata.csv"
 outdir <- "../results"
+```
 
+##Read data
+```{r}
 # Read metadata and transformed expression data
-metadata <- read.csv(file.path(indir, "metadata.csv"))
-expr.df <- read.csv(file.path(transfdir, "TransfExprData.csv"), check.names=FALSE)
+expr.df <- read.csv(transfcsv, check.names=FALSE)
+metadata <- read.csv(metafile)
+```
 
-# Check the available markers that can be copied
+##Marker selection
+The following code will print all the available markers in the data. \
+The markers of interest for clustering can be copied and paste to the next section.
+
+```{r}
+# Check the available markers that can be copied and paste to the next section.
 for(column in colnames(expr.df)[-1]){
   cat(paste("\"", column, "\",", sep=""), "\n")
 }
-
 ```
 
 ```{r}
 
 # Select the markers to be used for clustering and dimension reduction.
 sel.markers <- c(
-"FceR1g", 
-"CD56", 
-"CD94", 
-"GNLY", 
-"CD39", 
-"CD4", 
-"CXCR6", 
-"CD62L", 
-"CD8", 
-"GzmB", 
-"CD319", 
-"CD57", 
-"CD161", 
-"PD1", 
-"CD16", 
-"RORgt", 
-"2B4", 
-"Tbet"
+#copy selected markers from above here as:
+"marker1",
+"marker2",
+"marker3"
+#etc.
 )
 
+###############################################################
 
 # Create data list with expression matrix and metadata
 data <- list(expr.mat = as.matrix(expr.df[,sel.markers]),
@@ -89,13 +84,19 @@ for (column in colnames(metadata)) {
 
 ```
 
-```{r}
+##Phenograph clustering
+The following code will perfom phenograph clustering to the data considering the previously selected markers. \
+The results depend on the indicated k parameter, which can be adjusted.
 
-#PHENOGRAPH
+```{r}
+# Indicate the parameter:
+k_param <- 50
+
+####################################################
 
 #Calculate phenograph considering the desired k value
 # Adjust k as needed
-pheno <- Rphenograph(data$expr.mat, k = 50) 
+pheno <- Rphenograph(scale(data$expr.mat), k = k_param) 
 
 #Insert the clustering information into the data
 data$metadata$Clusters  <- as.factor(membership(pheno[[2]]))
@@ -104,31 +105,44 @@ data$metadata$Clusters  <- as.factor(membership(pheno[[2]]))
 
 ```
 
+##tSNE
+This code will perform tSNE dimensional reduction for visualization of the clusters. \
+Parameters can be adjusted as needed.
 
 ```{r}
 
 #tSNE
-tsne.obj <- Rtsne(data$expr.mat,
+tsne.obj <- Rtsne(scale(data$expr.mat),
                   dims = 2,
                   initial_dims = ncol(data$expr.mat),
-                  perplexity = 30, # Adjust as needed
+                  perplexity = 50, # Adjust as needed
                   theta = 0.1, # Adjust as needed
-                  eta = 10, # Adjust as needed
+                  eta = 200, # Adjust as needed
                   pca = FALSE,
-                  max_iter = 5000, # Adjust as needed
+                  max_iter = 1000, # Adjust as needed
                   verbose = FALSE)
 
+######################################################
 # Add tSNE values to the data
 tsne.values <- tsne.obj$Y
 colnames(tsne.values) <- c("tSNE_1", "tSNE_2")
 data$metadata[,colnames(tsne.values)] <- tsne.values
+```
+
+##tSNE plot
+A 2D plot will be printed. \
+The plot can be split by any feature in the metadata.
+
+```{r}
+# For splitting the plot:
+split.by <- NULL #or any feature from metadata.
 
 # Plot tSNE
 tSNEclusters <- plot.feature(data$metadata, 
                               x = "tSNE_1",
                               y = "tSNE_2",
                               color.by = "Clusters", #or any other feature in the metadata
-                              split.by = NULL,
+                              split.by = split.by,
                               size = 1.5, #size of the dots
                               alpha = 1,
                               show.cluser.id = TRUE,
@@ -140,27 +154,37 @@ print(tSNEclusters)
 
 ```
 
-
-
+##UMAP
+This code will perform UMAP dimensional reduction for visualization of the clusters. \
+Number of neighbours can be adjusted as needed.
 
 ```{r}
 
 #UMAP
 umap.config <- umap.defaults
 umap.config$n_neighbors <- 50 #Adjust as needed
-umap.data <- umap(data$expr.mat, config=umap.config)
+umap.data <- umap(scale(data$expr.mat), config=umap.config)
 #Obtain the UMAP values
 umap.values <- umap.data$layout
 colnames(umap.values) <- c("UMAP_1", "UMAP_2")
 #Insert UMAP values to metadata dataframe
 data$metadata[,colnames(umap.values)] <- umap.values
+```
+
+##UMAP plot
+A 2D plot will be printed. \
+The plot can be split by any feature in the metadata.
+
+```{r}
+# For splitting the plot:
+split.by <- NULL #or any feature from metadata.
 
 # Plot UMAP
 UMAPclusters <- plot.feature(data$metadata, 
                               x = "UMAP_1",
                               y = "UMAP_2",
                               color.by = "Clusters", 
-                              split.by = NULL,
+                              split.by = split.by,
                               size = 1,
                               alpha = 1,
                               show.cluser.id = TRUE,
@@ -172,7 +196,8 @@ print(UMAPclusters)
 
 ```
 
-
+##Save output
+The output rds file will be saved in the pre-established output directory inside RDSfiles directory.
 
 ```{r}
 
@@ -181,12 +206,17 @@ if (!file.exists(outdir)){
     dir.create(outdir)
 }
 
-RDSdir <- file.path(outdir, "RDS")
+RDSdir <- file.path(outdir, "RDSfiles")
 
 if (!file.exists(RDSdir)){
     dir.create(RDSdir)
 }
+
 AnalysisID <- Sys.Date()
-saveRDS(data, file.path(RDSdir, paste("Pheno_clustering_", seed, "_", AnalysisID, ".rds", sep="")))
+filename <- paste("Phenograph_clustering_", seed, "_", AnalysisID, ".rds", sep="")
+saveRDS(data, file.path(RDSdir, filename))
+
+cat("output file in", RDSdir, "\n")
+cat(filename, "\n")
 ```
 
