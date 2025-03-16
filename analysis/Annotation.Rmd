@@ -310,7 +310,7 @@ print(heat.expr)
 dev.off()
 
 for (i in 1:length(expr2D)){
-  svglite(paste(plotdir, "/Expr2D_", names(UMAPexpr)[i], "_", AnalysisID, ".svg", sep = ""))
+  svglite(paste(plotdir, "/Expr2D_", names(expr2D)[i], "_", AnalysisID, ".svg", sep = ""))
   print(expr2D[[i]])
   dev.off()
 }
