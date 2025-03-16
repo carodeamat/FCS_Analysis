@@ -6,7 +6,7 @@
 plot.feature <- function(data,
                           x = "UMAP_1",
                           y = "UMAP_2",
-                          color.by = "Clusters_pheno",
+                          color.by = "Clusters",
                           split.by = NULL,
                           order = NULL,
                           size = 1,
@@ -14,7 +14,7 @@ plot.feature <- function(data,
                           show.cluser.id = TRUE,
                           show.cluser.id.size = 4,
                           colors = "default",
-                          main = "UMAP clusters",
+                          main = "2D plot clusters",
                           aspect.ratio = 1,
                           x.range = "default",
                           y.range = "default",
@@ -97,7 +97,7 @@ plot.expr <- function(feat_data,
                       split.by = NULL,
                       size = 1,
                       alpha = 1,
-                      main = "UMAP expression",
+                      main = "2D expression",
                       colors = viridis(100),
                       limits = NULL,
                       aspect.ratio = 1,
@@ -107,7 +107,7 @@ plot.expr <- function(feat_data,
   
   
   if (length(color.by) > 1) {
-    warning(Sys.time(), " color.by has more than one elements. Only the first one will be used")
+    warning(" color.by has more than one elements. Only the first one will be used")
     color.by <- color.by[1]
   }
   
@@ -150,7 +150,7 @@ plot.expr <- function(feat_data,
   }
   
   if (!is.null(split.by)){
-    gg <- gg +  facet_grid(. ~ .feat_data[[split.by]])
+    gg <- gg +  facet_grid(. ~ .data[[split.by]])
   }
   
   return(gg)
@@ -196,7 +196,7 @@ dens.plot <- function(feat_data,
 bar.plot <- function(table, 
                      xlabel="Population", 
                      ylabel="Frequency", 
-                     fill.label="Group",
+                     fill.by="Group",
                      colors= "default",
                      x.angle=45,
                      vjust = 1, 
@@ -208,7 +208,7 @@ bar.plot <- function(table,
     theme_classic() +
     xlab(xlabel) +
     ylab(ylabel) +
-    labs(fill = fill.label) +
+    labs(fill = fill.by) +
     theme(axis.text.x = element_text(angle = x.angle, 
                                      vjust = vjust, 
                                      hjust=hjust),
