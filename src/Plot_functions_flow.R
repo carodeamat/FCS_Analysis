@@ -130,7 +130,9 @@ plot.expr <- function(feat_data,
   gg <- gg + theme(aspect.ratio=aspect.ratio)
   
   if (!is.null(limits)){
-    gg <- gg + scale_colour_gradientn(colors = colors, limits = limits)
+    gg <- gg + scale_colour_gradientn(colors = colors, 
+                                      limits = limits,
+                                      oob=scales::squish)
   } else{
     gg <- gg + scale_colour_gradientn(colors = colors)
   }
