@@ -9,117 +9,86 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Transformation
-
 This is an R Markdown document to pre-process FCS files by applying transformation to parameter values. 
 
-## Load packages and utilities
-```{r}
+##Load packages and utilities
+```{r, warning=FALSE}
 
 library(tidyverse)
 library(flowCore)
 library(flowVS)
 
-source("Preprocessing_Functions.R")
+source("../src/Preprocessing_Functions.R")
 
 ```
 
-## Directories
-The input directory (indir) is were all the data is store (fcs files/directory and metadata file)
-The fcs directory (fcsdir) is where the FCS files are located.
-The output directory (outdir) will contain the results of the analysis
-The plotd directory (plotdir) will contain all the output images generated.
-
+##Paths to directories and files
+*fcsdir* is the path to the directory containing the FCS files. \
+*metafile* is the path to the metadata file, which is a csv file containing the sample name (same name as fcs file) in the first column, as well as all the information for each sample (e.g. mouseID, Treatment, Sex, Tissue, etc.). \
+*outdir* is the path to the output directory that will contain the output data after transformation. The directory will be created if it doesn't exist.
 
 ```{r}
 # Set directories
-
-indir <- "../data/"
 fcsdir <- "../data/FCS/"
+metafile <- "../data/metadata.csv"
+outdir <- "../data/TransformedData/"
 
 ```
 
 ## Read data
-
-A csv file named "metadata.csv", containing the sample name (same as fcs file) as well as all the information for each files (e.g. mouseID, Treatment, Sex, Tissue, etc.) must be located in the working directory (root.dir).
-The read.fcs function reads the metadata and identify the fcs files in the fcs directory to read them and create a flowset object. It will also print the fcs file names that are included in the flowset, and will inform of any excluded (present in fcsdir but not in metadata), or missing (in metadata, but not found in fcsdir) fcs file.
+The `read.fcs` function reads the metadata and identify the fcs files in the fcs directory to read them and create a flowset object. It will also print the fcs file names that are included in the flowset, and will inform of any excluded (present in fcsdir but not in metadata), or missing (in metadata, but not found in fcsdir) fcs file.
 
 ```{r}
 
-metadata <- read.csv(file.path(indir, "metadata.csv"))
+metadata <- read.csv(metafile)
 
 fset <- read.fcs(fcs.dir.path=fcsdir,
                  metadata=metadata,
                  transform=FALSE,
-                 downsample=NULL,
+                 downsample=5000,
                  truncate.max=FALSE)
 
 ```
 
 ## Obatin parameters to transform
+Copy and paste a representative sample from the list above to the variable "representative_sample". \
+The following code will create a data frame from the representative sample containing the channels, labels, markers, and an initial cofactor value for transformation. \
+Then, it will print a list of the available markers and assigned cofactor, which can be copied and paste to the next section to adjust the cofactor values.
 
 ```{r}
+# Set the variables. Rerun as needed.
+representative_sample <- "<Sample_001.fcs>"
+Label_separator <- NULL
+initial_cofactor <- 200
 
-representative_sample <- "NKT002_F.fcs"
+###################################################################
 
 # Data frame containing the channels and respective marker names
 fftest <- fset@frames[[representative_sample]]
-param.df <- data.frame(channel = fftest@parameters@data$name, 
-                       label = fftest@parameters@data$desc)
 
-# See the label format
-glimpse(param.df)
-
-```
-
-
-```{r}
-
-AutoF_channel <- "FJComp-UV446-A"
-Label_separator <- "-"  
-
-# Filter the parameters to get only Area measures of markers, retrieve marker names, and set initial cofactor value.
-param.df <- process.param (param.df,
-                           AutoF.ch=AutoF_channel,
-                           marker.color=TRUE,
-                           label.sep=Label_separator,
-                           cofactor=1000)
-
+param.df <- process.param (fftest,
+                           cofactor=initial_cofactor,
+                           label.sep=Label_separator)
 
 ```
 
-
+##Test cofactors
+Flow data requires transformation (e.g. log, biexponential,etc). Hyperbolic arcsine (arcsinh) transformation is recommended in this case and it is calculated based on a determined cofactor. \
+In the following code the cofactor for each marker can be adjusted then a transformation will be performed. \
+Density plots will be printed for each marker. \
+The cofactors can be re-adjusted and the code re-run as needed. \
+If needed, another representative sample can be tested by editing the previous section.
 ```{r}
 
-# Adjust and re-run as needed
+# Adjust cofactors and re-run as needed
 custom.cof <- c(
-'FceR1g'=1000, 
-'CD56'=700, 
-'CD94'=1000, 
-'CD45'=1000, 
-'GNLY'=1000, 
-'CD39'=1000, 
-'L_D'=2000, 
-'CD3'=1000, 
-'CD4'=1000, 
-'TCRgd'=2000, 
-'CXCR6'=1000, 
-'CD62L'=1000, 
-'TCRVa72'=3000, 
-'CD8'=2000, 
-'CD1dTet'=1000, 
-'GzmB'=1000, 
-'CD319'=1000, 
-'CD57'=1000, 
-'CD161'=1000, 
-'PD1'=1500, 
-'CD14_19'=3000, 
-'CD16'=1000, 
-'MR1Tet'=1000, 
-'RORgt'=1000, 
-'2B4'=1000, 
-'Tbet'=1000)
+#copy markers and cofactors here as:
+'param1'=1000,
+'param2'=1000,
+#etc.
+)
 
+##############################################################################
 
 # Replace the cofactors
 param.df$cofactor[match(names(custom.cof), param.df$marker)] = custom.cof
@@ -144,10 +113,11 @@ densityplot(~., fftest.transf, channel = param.df$channel)
 
 ```
 
-
+##Transform the flowset
+After choosing the cofactors, the transformation can applied to the entire dataset with the following code.
 ```{r}
 
-# Transform all the flowset with the redefined cofactors
+# Transform all the flowset with the redefined cofactors.
 fst <- transFlowVS(fset, channels=as.character(param.df$channel), cofactor=param.df$cofactor)
 
 # Get the expression matrix and respective sample
@@ -161,20 +131,22 @@ glimpse(mat)
 
 ```
 
+##Save transformed data
+The output files will be saved in the pre-established output directory: \
+- A csv file with the transformed expression values for the entire dataset. \
+- FCS files with the transformed values.
 ```{r}
 
 # Create directory if it does not exist
-if (!file.exists(file.path(indir, "Transformed_Data"))){
-    dir.create(file.path(indir, "Transformed_Data"))
+if (!file.exists(outdir)){
+    dir.create(outdir)
 }
 
-tranf_data_dir <- file.path(indir, "Transformed_Data")
-
 # Save flowframes wihtin flowset as fcs files using the flowCore package
-write.flowSet(fst, outdir=tranf_data_dir, filename = sampleNames(fst))
+write.flowSet(fst, outdir=outdir, filename = sampleNames(fst))
 
 # Save the transformed expression matrix
-write.csv(mat, file.path(tranf_data_dir, "TransfExprData.csv"), row.names=FALSE)
+write.csv(mat, file.path(outdir, "TransfExprData.csv"), row.names=FALSE)
 
 ```
 
