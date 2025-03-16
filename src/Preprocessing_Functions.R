@@ -52,30 +52,32 @@ read.fcs <- function(fcs.dir.path,
 ## FUNCTION TO FILTER AND PROCESS PARAMETERS 
 ############################################
 
-process.param <- function(param.df,
-                         AutoF.ch=NULL,
-                         marker.color=TRUE,
-                         label.sep="_",
-                         cofactor=1000){
+process.param <- function(flowframe,
+                          cofactor=1000,
+                         label.sep="_"){
   
-  #This will omit FSC, SSC, Time, and autofluorescence parameters
+  # Obtain channels and labels from flowframe.
+  param.df <- data.frame(channel = flowframe@parameters@data$name, 
+                         label = as.character(flowframe@parameters@data$desc))
+  
+  #This will omit FSC, SSC, and Time parameters
   param.df <- na.omit(param.df[str_detect(param.df$channel, "^(?!FSC)(?!SSC).*-A$"),])
-  
-  if(!(is.null(AutoF.ch))&(AutoF.ch %in% param.df$channel)){
-    autof.regex <- paste("^(?!\\", AutoF.ch, ")", sep="")
-    param.df <- na.omit(param.df[str_detect(param.df$channel, autof.regex),])
-  }
-  
-  if(marker.color & !(is.null(label.sep))){
+
+  # Detect the name of the marker in the label (i.e. excluding fluorochrome if it is also in the label)
+  # If label separator is specified.
+  if(!is.null(label.sep)){
     label.regex <- paste("(.*)[", label.sep, "](.*)", sep="")
   } else{
     label.regex <- "(.*)"
   }
   
-  # Detect the name of the marker in the label (i.e. excluding fluorochrome if it is also in the label)
-  param.df$marker <- str_match(param.df$label, label.regex)[,2] 
+  param.df$marker <- str_match(param.df$label, label.regex)[,2]
+  param.df$marker[is.na(param.df$marker)] <- param.df$label[is.na(param.df$marker)]
   param.df$cofactor <- cofactor 
   
+  # Show the available markers and their default cofactors.
+  cat("copy, paste, and edit the cofactors as needed in the next section:", "\n")
+  cat("---------------------------", "\n")
   for(marker in param.df$marker){
     cat(paste("'", marker, "'", "=", cofactor, ",", sep=""), "\n")
   }
