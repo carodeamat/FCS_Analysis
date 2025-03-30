@@ -44,11 +44,12 @@ plot.feature <- function(data,
   
   
   # plot
-  gg <- ggplot(plot.data) + geom_point(aes(x=plot.x, y=plot.y, color = plot.color.by), size = size, alpha = alpha)
-  gg <- gg + plot.theme
-  gg <- gg + labs(x = x, y = y, title = paste0(main))
-  gg <- gg + labs(color = color.by)
-  gg <- gg + theme(aspect.ratio = aspect.ratio)
+  gg <- ggplot(plot.data) + 
+    geom_point(aes(x=plot.x, y=plot.y, color = plot.color.by), size = size, alpha = alpha) +
+    plot.theme +
+    labs(x = x, y = y, title = paste0(main)) +
+    labs(color = color.by) +
+    theme(aspect.ratio = aspect.ratio)
   
   if (show.cluser.id) {
     pos <- aggregate(  plot.data[, seq_len(2)], list( pos = plot.data$plot.color.by ), mean)
@@ -123,11 +124,12 @@ plot.expr <- function(feat_data,
   }
   
   # plot
-  gg <- ggplot(plot.data) + geom_point(aes(x=plot.x, y=plot.y, color = plot.color.by), size = size, alpha = alpha)
-  gg <- gg + plot.theme
-  gg <- gg + labs(x = x, y = y, title = paste0(main))
-  gg <- gg + labs(color = color.by) 
-  gg <- gg + theme(aspect.ratio=aspect.ratio)
+  gg <- ggplot(plot.data) + 
+    geom_point(aes(x=plot.x, y=plot.y, color = plot.color.by), size = size, alpha = alpha) +
+    plot.theme +
+    labs(x = x, y = y, title = paste0(main)) +
+    labs(color = color.by) +
+    theme(aspect.ratio=aspect.ratio)
   
   if (!is.null(limits)){
     gg <- gg + scale_colour_gradientn(colors = colors, 
