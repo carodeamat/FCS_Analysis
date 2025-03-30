@@ -85,3 +85,61 @@ process.param <- function(flowframe,
 }
 
 
+############################################
+## FUNCTION TO TEST COFACTORS 
+############################################
+
+test.cofactors <- function(flowframe.obj,
+                           param.df,
+                           new.cofactors = NULL) {
+  
+  if(!is.null(new.cofactors)) {
+    # Replace the cofactors
+    param.df$cofactor[match(names(new.cofactors), param.df$marker)] <- new.cofactors
+  }
+  
+  fs <- as(flowframe.obj,"flowSet")
+  
+  # Transform the representative file
+  fs.transf <- transFlowVS(fs,
+                           channels=as.character(param.df$channel),
+                           cofactor=param.df$cofactor
+  )
+  
+  fs.transf@frames$V1@parameters@data$name[match(param.df$channel,
+                                                 fs.transf@frames$V1@parameters@data$name)] <- param.df$marker
+  
+  flowViz.par.set(theme =  trellis.par.get(), reset = TRUE)
+  
+  # Plot histograms for each marker to test cofactor values
+  dp <- flowViz::densityplot(~., fs.transf, channel = param.df$channel)
+  cat("cofactors used:", "\n")
+  print(as.matrix(param.df[, c("marker", "cofactor")], rownames.force = FALSE))
+  print(dp)
+}
+
+############################################
+## FUNCTION TO GET JOINED EXPRESSION MATRIX 
+############################################
+
+expr.fs <- function(flowset.obj,
+                    param.df = NULL){
+  
+  # Get the expression matrix and respective sample
+  mat <- as.data.frame(exprs(as(flowset.obj,'flowFrame')),stringsAsFactors=FALSE)
+  mat <- mat %>% select(Original, everything())
+  
+  for(i in 1:length(flowset.obj)){
+    sample_name <- str_remove(names(flowset.obj@frames)[i], ".fcs$")
+    mat$Original[mat$Original==i] <- sample_name
+  }
+  
+  colnames(mat)[colnames(mat)=="Original"] <- "Sample_ID"
+  
+  if(!is.null(param.df) & all(c("channel", "marker") %in% colnames(param.df))) {
+    colnames(mat)[match(param.df$channel, colnames(mat))] <- param.df$marker
+  }
+  
+  return(mat)
+}
+
