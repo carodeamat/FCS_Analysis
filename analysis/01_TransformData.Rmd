@@ -17,8 +17,12 @@ This is an R Markdown document to pre-process FCS files by applying transformati
 library(tidyverse)
 library(flowCore)
 library(flowVS)
+library(here)
 
-source("../src/Preprocessing_Functions.R")
+source(here("src/Preprocessing_Functions.R"))
+
+seed <- 1234
+set.seed(seed)
 
 ```
 
@@ -29,9 +33,9 @@ source("../src/Preprocessing_Functions.R")
 
 ```{r}
 # Set directories
-fcsdir <- "../data/FCS/"
-metafile <- "../data/metadata.csv"
-outdir <- "../data/TransformedData/"
+fcsdir <- here("data/FCS/")
+metafile <- here("data/metadata.csv")
+outdir <- here("data/TransformedData/")
 
 ```
 
@@ -90,26 +94,11 @@ custom.cof <- c(
 
 ##############################################################################
 
-# Replace the cofactors
-param.df$cofactor[match(names(custom.cof), param.df$marker)] = custom.cof
+# Test the cofactors with density plots
 
-
-fftestset <- as(fftest,"flowSet")
-
-# Transform the representative file
-fftest.transf <- transFlowVS(fftestset, 
-                             channels=as.character(param.df$channel), 
-                             cofactor=param.df$cofactor)
-
-fftest.transf@frames$V1@parameters@data$name[match(param.df$channel, 
-                                                   fftest.transf@frames$V1@parameters@data$name)] = param.df$marker
-
-flowViz.par.set(theme =  trellis.par.get(), reset = TRUE)
-
-# Plot histograms for each marker to test cofactor values
-densityplot(~., fftest.transf, channel = param.df$channel)
-
-
+test.cofactors(flowframe.obj = fftest,
+               param.df = param.df,
+               new.cofactors = custom.cof)
 
 ```
 
@@ -120,13 +109,10 @@ After choosing the cofactors, the transformation can applied to the entire datas
 # Transform all the flowset with the redefined cofactors.
 fst <- transFlowVS(fset, channels=as.character(param.df$channel), cofactor=param.df$cofactor)
 
-# Get the expression matrix and respective sample
-mat <- as.data.frame(exprs(as(fst,'flowFrame')),stringsAsFactors=FALSE)
-mat <- mat %>% select(Original, everything())
-mat$Original <- metadata[mat$Original,1]
-colnames(mat)[colnames(mat)=="Original"] <- "Sample_ID"
-colnames(mat)[match(param.df$channel, colnames(mat))] = param.df$marker
-colnames(mat)[colnames(mat)==AutoF_channel] <- "AutoF"
+# Obtain a joined expression matrix from the flowfset.
+# First column should contain the sample ID.
+mat <- expr.fs(fst, param.df)
+
 glimpse(mat)
 
 ```
