@@ -21,8 +21,9 @@ library(tidyverse)
 library(Rphenograph)
 library(umap)
 library(Rtsne)
+library(here)
 
-source("../src/Plot_functions_flow.R")
+source(here("src/Plot_functions_flow.R"))
 
 seed <- 1234
 set.seed(seed)
@@ -36,9 +37,9 @@ set.seed(seed)
 ```{r}
 
 # Set directories
-transfcsv <- "../data/TransformedData/TransfExprData.csv"
-metafile <- "../data/metadata.csv"
-outdir <- "../results"
+transfcsv <- here("data/TransformedData/TransfExprData.csv")
+metafile <- here("data/metadata.csv")
+outdir <- here("results")
 ```
 
 ##Read data

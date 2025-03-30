@@ -21,8 +21,9 @@ library(viridis)
 library(scales)
 library(reshape2)
 library(svglite)
+library(here)
 
-source("../src/Plot_functions_flow.R")
+source(here("src/Plot_functions_flow.R"))
 
 seed <- 1234
 set.seed(seed)
@@ -36,8 +37,8 @@ set.seed(seed)
 ```{r}
 
 # Set directories
-datapath <- "../results/RDSfiles/Pheno_clustering_1234_2025-01-27.rds"
-outdir <- "../results"
+datapath <- here("results/RDSfiles/Pheno_clustering_1234_2025-01-27.rds")
+outdir <- here("results")
 ```
 
 ##Read data
