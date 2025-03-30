@@ -130,7 +130,7 @@ expr.fs <- function(flowset.obj,
   mat <- mat %>% select(Original, everything())
   
   for(i in 1:length(flowset.obj)){
-    sample_name <- str_remove(names(flowset.obj@frames)[i], ".fcs$")
+    sample_name <- str_remove(sampleNames(flowset.obj)[i], ".fcs$")
     mat$Original[mat$Original==i] <- sample_name
   }
   
